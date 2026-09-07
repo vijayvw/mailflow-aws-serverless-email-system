@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MailFlow Email System</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #F0F4F8;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+      padding: 40px;
+      max-width: 520px;
+      width: 100%;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+
+    .logo-icon {
+      width: 44px; height: 44px;
+      background: #1A5276;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .logo-icon svg { width: 24px; height: 24px; fill: white; }
+
+    h1 { font-size: 20px; color: #1A5276; font-weight: 700; }
+    p.subtitle { font-size: 13px; color: #888; margin-top: 2px; }
+
+    label { display: block; font-size: 13px; font-weight: 600; color: #444; margin-bottom: 6px; }
+
+    .upload-zone {
+      border: 2px dashed #B0C4DE;
+      border-radius: 8px;
+      padding: 28px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    .upload-zone:hover, .upload-zone.dragover {
+      border-color: #1A5276;
+      background: #EAF0F8;
+    }
+
+    .upload-zone input[type="file"] {
+      position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+    }
+
+    .upload-icon { font-size: 36px; color: #B0C4DE; margin-bottom: 8px; }
+    .upload-text { font-size: 14px; color: #666; }
+    .upload-text span { color: #1A5276; font-weight: 600; }
+    .file-name { font-size: 13px; color: #1A5276; margin-top: 8px; font-weight: 600; }
+
+    .field-group { margin-bottom: 16px; }
+
+    input[type="text"] {
+      width: 100%; padding: 10px 14px;
+      border: 1.5px solid #ddd; border-radius: 7px;
+      font-size: 14px; color: #222;
+      transition: border-color 0.2s;
+      outline: none;
+    }
+
+    input[type="text"]:focus { border-color: #1A5276; }
+
+    .btn {
+      width: 100%; padding: 13px;
+      background: #1A5276; color: #fff;
+      border: none; border-radius: 8px;
+      font-size: 15px; font-weight: 600;
+      cursor: pointer; transition: background 0.2s;
+      margin-top: 8px;
+    }
+
+    .btn:hover { background: #154360; }
+    .btn:disabled { background: #aaa; cursor: not-allowed; }
+
+    .status {
+      margin-top: 20px; padding: 14px 16px;
+      border-radius: 8px; font-size: 13px; display: none;
+    }
+
+    .status.success { background: #E8F5E9; color: #2E7D32; border-left: 4px solid #43A047; }
+    .status.error   { background: #FFEBEE; color: #C62828; border-left: 4px solid #E53935; }
+    .status.loading { background: #E3F2FD; color: #1565C0; border-left: 4px solid #1E88E5; }
+
+    .steps {
+      display: flex; gap: 8px; margin-bottom: 28px;
+    }
+
+    .step {
+      flex: 1; text-align: center; font-size: 11px;
+      color: #aaa; display: flex; flex-direction: column; align-items: center; gap: 4px;
+    }
+
+    .step-dot {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: #E8EFF5; color: #aaa;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700;
+    }
+
+    .step.active .step-dot { background: #1A5276; color: #fff; }
+    .step.active { color: #1A5276; font-weight: 600; }
+
+    .step-line {
+      flex: 0 0 24px; height: 2px; background: #E8EFF5;
+      align-self: center; margin-top: -12px;
+    }
+
+    .csv-hint {
+      font-size: 11px; color: #aaa; margin-top: 6px;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24"><path d="M20 4H4C2.9 4 2 4.9 2 6v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+      </div>
+      <div>
+        <h1>MailFlow Email System</h1>
+        <p class="subtitle">AWS Lambda · SES · SNS · S3</p>
+      </div>
+    </div>
+
+    <div class="steps">
+      <div class="step active">
+        <div class="step-dot">1</div>Upload CSV
+      </div>
+      <div class="step-line"></div>
+      <div class="step">
+        <div class="step-dot">2</div>S3 Trigger
+      </div>
+      <div class="step-line"></div>
+      <div class="step">
+        <div class="step-dot">3</div>Lambda Sends
+      </div>
+      <div class="step-line"></div>
+      <div class="step">
+        <div class="step-dot">4</div>SNS Report
+      </div>
+    </div>
+
+    <div class="upload-zone" id="uploadZone">
+      <input type="file" id="csvFile" accept=".csv" />
+      <div class="upload-icon">📂</div>
+      <div class="upload-text">Drag & drop or <span>browse</span> your CSV file</div>
+      <div class="file-name" id="fileName"></div>
+    </div>
+    <p class="csv-hint">CSV format: <code>name, email, subject, message</code></p>
+
+
+    <button class="btn" id="sendBtn" onclick="handleUpload()">Upload & Trigger Email Pipeline ↗</button>
+
+    <div class="status" id="statusBox"></div>
+  </div>
+
+  <script src="config.js"></script>
+
+  <script>
+    const API_BASE_URL = window.MAILFLOW_API_URL;
+    const uploadZone = document.getElementById('uploadZone');
+    const fileInput  = document.getElementById('csvFile');
+    const fileName   = document.getElementById('fileName');
+    const statusBox  = document.getElementById('statusBox');
+
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files[0]) {
+        fileName.textContent = '✅ ' + fileInput.files[0].name;
+      }
+    });
+
+    uploadZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadZone.classList.add('dragover');
+    });
+    uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
+    uploadZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadZone.classList.remove('dragover');
+      const file = e.dataTransfer.files[0];
+      if (file && file.name.endsWith('.csv')) {
+        fileInput.files = e.dataTransfer.files;
+        fileName.textContent = '✅ ' + file.name;
+      } else {
+        showStatus('error', 'Please upload a valid .csv file.');
+      }
+    });
+
+    function showStatus(type, msg) {
+      statusBox.style.display = 'block';
+      statusBox.className = 'status ' + type;
+      statusBox.innerHTML = msg;
+    }
+
+    async function handleUpload() {
+  const file = fileInput.files[0];
+
+  if (!file) {
+    return showStatus('error', '❌ Please select a CSV file first.');
+  }
+
+  if (!file.name.toLowerCase().endsWith('.csv')) {
+    return showStatus('error', '❌ Please upload a valid .csv file.');
+  }
+
+  if (!API_BASE_URL) {
+    return showStatus('error', '❌ API configuration is missing.');
+  }
+
+  try {
+    const sendBtn = document.getElementById('sendBtn');
+
+    sendBtn.disabled = true;
+
+    showStatus(
+      'loading',
+      '⏳ Requesting secure upload URL...'
+    );
+
+    // 1. Ask API Gateway for a presigned S3 URL
+    const urlResponse = await fetch(
+      `${API_BASE_URL}/upload-url`
+    );
+
+    if (!urlResponse.ok) {
+      throw new Error(
+        `API request failed: ${urlResponse.status}`
+      );
+    }
+
+    const uploadData = await urlResponse.json();
+
+    if (!uploadData.uploadUrl) {
+      throw new Error('Upload URL was not returned by API.');
+    }
+
+    // 2. Upload CSV directly to S3
+    showStatus(
+      'loading',
+      '⏳ Uploading CSV securely to S3...'
+    );
+
+    const uploadResponse = await fetch(
+      uploadData.uploadUrl,
+      {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'text/csv'
+        },
+        body: file
+      }
+    );
+
+    if (!uploadResponse.ok) {
+      throw new Error(
+        `S3 upload failed: ${uploadResponse.status}`
+      );
+    }
+
+    // 3. S3 automatically triggers Lambda
+    showStatus(
+      'success',
+      `✅ <strong>CSV uploaded successfully!</strong><br><br>
+       📄 File: <code>${file.name}</code><br>
+       📦 S3 upload completed successfully.<br>
+       ⚡ <strong>Lambda will process the CSV automatically.</strong><br>
+       📧 SES will send the campaign emails.<br>
+       📢 SNS will send the job summary notification.`
+    );
+
+  } catch (error) {
+
+    console.error('MailFlow upload error:', error);
+
+    showStatus(
+      'error',
+      `❌ <strong>Upload failed</strong><br><br>
+       ${error.message}`
+    );
+
+  } finally {
+    document.getElementById('sendBtn').disabled = false;
+  }
+}
+  </script>
+</body>
+</html>
+
