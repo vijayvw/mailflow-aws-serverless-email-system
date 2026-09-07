@@ -1,0 +1,4 @@
+aws_region         = "ap-south-1"
+project_name       = "mailflow-email-system"
+sender_email       = "your-verified-email@example.com"
+notification_email = "your-email@example.com"
